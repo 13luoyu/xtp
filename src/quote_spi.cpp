@@ -5,8 +5,6 @@
 //#include <pthread.h>
 using namespace std;
 
-int count_depthdata=0;
-int count_tickbytick=0;
 
 void MyQuoteSpi::OnError(XTPRI *error_info, bool is_last)
 {
@@ -26,6 +24,7 @@ void MyQuoteSpi::OnDisconnected(int reason)
 {
 	cout << "--->>> " << "OnDisconnected quote" << endl;
 	cout << "--->>> Reason = " << reason << endl;
+	exit(1);//if disconnect, exit and restart
 }
 
 void MyQuoteSpi::OnSubMarketData(XTPST *ticker, XTPRI *error_info, bool is_last)
@@ -60,10 +59,12 @@ void MyQuoteSpi::OnDepthMarketData(XTPMD * market_data, int64_t bid1_qty[], int3
 	for(int i=0;i<10;i++)
 		os<<market_data->ask_qty[i]<<",";
 	os<<market_data->trades_count<<",";
-	if(market_data->exchange_id==XTP_EXCHANGE_SH)
-		os<<market_data->ticker_status[0]<<market_data->ticker_status[1]<<market_data->ticker_status[2]<<"\n";
-	else if(market_data->exchange_id==XTP_EXCHANGE_SZ)
-		os<<market_data->ticker_status[0]<<market_data->ticker_status[1]<<"\n";
+	if(market_data->ticker_status[0]!=0){
+		if(market_data->exchange_id==XTP_EXCHANGE_SH)
+			os<<market_data->ticker_status[0]<<market_data->ticker_status[1]<<market_data->ticker_status[2]<<"\n";
+		else if(market_data->exchange_id==XTP_EXCHANGE_SZ)
+			os<<market_data->ticker_status[0]<<market_data->ticker_status[1]<<"\n";
+	}
 	os.close();
 }
 

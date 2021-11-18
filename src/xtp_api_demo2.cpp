@@ -156,9 +156,13 @@ int main()
 // 		sleep(1);
 // #endif // WIN32
 		char c=getchar();
-		if(c=='q')
+		if(c=='q'){
 			break;
+		}
     }
-
-
+	pQuoteApi->UnSubscribeAllMarketData();
+	pQuoteApi->UnSubscribeAllTickByTick();
+	pQuoteApi->Logout();
+	pQuoteApi->Release();
+	return 0;
 }
