@@ -2,9 +2,13 @@
 #include <iostream>
 #include <stdio.h>
 #include <fstream>
+#include <string>
 //#include <pthread.h>
 using namespace std;
 
+extern string depth_csv;
+extern string entrust_csv;
+extern string trade_csv;
 
 void MyQuoteSpi::OnError(XTPRI *error_info, bool is_last)
 {
@@ -39,7 +43,7 @@ void MyQuoteSpi::OnUnSubMarketData(XTPST *ticker, XTPRI *error_info, bool is_las
 
 void MyQuoteSpi::OnDepthMarketData(XTPMD * market_data, int64_t bid1_qty[], int32_t bid1_count, int32_t max_bid1_count, int64_t ask1_qty[], int32_t ask1_count, int32_t max_ask1_count)
 {
-	ofstream os("depth.csv", ios::app);
+	ofstream os(depth_csv, ios::app);
 	// os<<"exchange_id, last_price, pre_close_price, open_price, high_price, low_price, close_price, "<<
 	// 	"upper_limit_price, lower_limit_price, pre_delta, curr_delta, data_time, qty, turnover, avg_price, "<<
 	// 	"bid, ask, bid_qty, ask_qty, trades_count, ticker_status\n";
@@ -97,7 +101,7 @@ void MyQuoteSpi::OnTickByTick(XTPTBT *tbt_data)
 {
 	if(tbt_data->type==XTP_TBT_ENTRUST)
 	{
-		ofstream os("entrust.csv", ios::app);
+		ofstream os(entrust_csv, ios::app);
 		os<<tbt_data->exchange_id<<","<<tbt_data->data_time<<
 		",";
 		XTPTickByTickEntrust& entrust=tbt_data->entrust;
@@ -108,7 +112,7 @@ void MyQuoteSpi::OnTickByTick(XTPTBT *tbt_data)
 	}
 	else if(tbt_data->type==XTP_TBT_TRADE)
 	{
-		ofstream os("trade.csv", ios::app);
+		ofstream os(trade_csv, ios::app);
 		os<<tbt_data->exchange_id<<","<<tbt_data->data_time<<",";
 		XTPTickByTickTrade &trade=tbt_data->trade;
 		os<<trade.channel_no<<","<<trade.seq<<","<<trade.price<<","
@@ -133,6 +137,7 @@ void MyQuoteSpi::OnSubscribeAllMarketData(XTP_EXCHANGE_TYPE exchange_id, XTPRI *
 
 void MyQuoteSpi::OnUnSubscribeAllMarketData(XTP_EXCHANGE_TYPE exchange_id, XTPRI * error_info)
 {
+	cout << "OnRspSubAllMarketData -----" << endl;
 }
 
 void MyQuoteSpi::OnSubscribeAllOrderBook(XTP_EXCHANGE_TYPE exchange_id, XTPRI * error_info)
@@ -145,6 +150,7 @@ void MyQuoteSpi::OnUnSubscribeAllOrderBook(XTP_EXCHANGE_TYPE exchange_id, XTPRI 
 
 void MyQuoteSpi::OnSubscribeAllTickByTick(XTP_EXCHANGE_TYPE exchange_id, XTPRI * error_info)
 {
+	cout << "OnRspSubAllTickByTick -----" << endl;
 }
 
 void MyQuoteSpi::OnUnSubscribeAllTickByTick(XTP_EXCHANGE_TYPE exchange_id, XTPRI * error_info)
