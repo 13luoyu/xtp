@@ -1,3 +1,0 @@
-/root/文档/XTPApiDemo-2.2.30.7/build/CMakeFiles/rebuild_cache.dir
-/root/文档/XTPApiDemo-2.2.30.7/build/CMakeFiles/edit_cache.dir
-/root/文档/XTPApiDemo-2.2.30.7/build/CMakeFiles/XTPApiDemo.dir
