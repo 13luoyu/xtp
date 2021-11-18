@@ -65,8 +65,6 @@ void MyQuoteSpi::OnDepthMarketData(XTPMD * market_data, int64_t bid1_qty[], int3
 	else if(market_data->exchange_id==XTP_EXCHANGE_SZ)
 		os<<market_data->ticker_status[0]<<market_data->ticker_status[1]<<"\n";
 	os.close();
-	//for test
-	cout<<"depthdata---"<<++count_depthdata<<endl;
 }
 
 void MyQuoteSpi::OnSubOrderBook(XTPST *ticker, XTPRI *error_info, bool is_last)
@@ -96,7 +94,6 @@ void MyQuoteSpi::OnOrderBook(XTPOB *order_book)
 
 void MyQuoteSpi::OnTickByTick(XTPTBT *tbt_data)
 {
-	//todo
 	if(tbt_data->type==XTP_TBT_ENTRUST)
 	{
 		ofstream os("entrust.csv", ios::app);
@@ -118,8 +115,6 @@ void MyQuoteSpi::OnTickByTick(XTPTBT *tbt_data)
 		trade.ask_no<<","<<trade.trade_flag<<"\n";
 		os.close();
 	}
-	//for test
-	cout<<"tickbytick---"<<++count_tickbytick<<endl;
 }
 
 void MyQuoteSpi::OnQueryAllTickers(XTPQSI * ticker_info, XTPRI * error_info, bool is_last)
