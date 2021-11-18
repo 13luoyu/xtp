@@ -133,11 +133,12 @@ void MyQuoteSpi::OnQueryTickersPriceInfo(XTPTPI * ticker_info, XTPRI * error_inf
 
 void MyQuoteSpi::OnSubscribeAllMarketData(XTP_EXCHANGE_TYPE exchange_id, XTPRI * error_info)
 {
+	cout << "OnRspSubAllMarketData -----" << endl;
 }
 
 void MyQuoteSpi::OnUnSubscribeAllMarketData(XTP_EXCHANGE_TYPE exchange_id, XTPRI * error_info)
 {
-	cout << "OnRspSubAllMarketData -----" << endl;
+	cout << "OnRspUnSubAllMarketData -----" << endl;
 }
 
 void MyQuoteSpi::OnSubscribeAllOrderBook(XTP_EXCHANGE_TYPE exchange_id, XTPRI * error_info)
@@ -155,6 +156,7 @@ void MyQuoteSpi::OnSubscribeAllTickByTick(XTP_EXCHANGE_TYPE exchange_id, XTPRI *
 
 void MyQuoteSpi::OnUnSubscribeAllTickByTick(XTP_EXCHANGE_TYPE exchange_id, XTPRI * error_info)
 {
+	cout << "OnRspUnSubAllTickByTick -----" << endl;
 }
 
 void MyQuoteSpi::OnSubscribeAllOptionMarketData(XTP_EXCHANGE_TYPE exchange_id, XTPRI * error_info)
