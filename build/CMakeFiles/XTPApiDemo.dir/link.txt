@@ -1,0 +1,1 @@
+/usr/bin/c++     CMakeFiles/XTPApiDemo.dir/src/FileUtils.cpp.o CMakeFiles/XTPApiDemo.dir/src/quote_spi.cpp.o CMakeFiles/XTPApiDemo.dir/src/trade_spi.cpp.o CMakeFiles/XTPApiDemo.dir/src/xtp_api_demo.cpp.o CMakeFiles/XTPApiDemo.dir/src/xtp_api_demo2.cpp.o  -o XTPApiDemo  -Wl,-rpath,/root/文档/XTPApiDemo-2.2.30.7/api ../api/libxtpquoteapi.so ../api/libxtptraderapi.so 

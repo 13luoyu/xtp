@@ -1,0 +1,15 @@
+cmake_minimum_required(VERSION 3.14)	
+project(XTPApiDemo)
+add_definitions(-std=c++17)
+
+file(GLOB APP_HEAD ${PROJECT_SOURCE_DIR}/src/*.h)
+file(GLOB APP_SRC ${PROJECT_SOURCE_DIR}/src/*.cpp)
+add_executable(XTPApiDemo ${APP_HEAD} ${APP_SRC})
+
+include_directories(${PROJECT_SOURCE_DIR}/api)
+include_directories(${PROJECT_SOURCE_DIR}/include)
+
+link_directories(${PROJECT_SOURCE_DIR}/api)
+target_link_libraries(XTPApiDemo ${PROJECT_SOURCE_DIR}/api/libxtpquoteapi.so)
+target_link_libraries(XTPApiDemo ${PROJECT_SOURCE_DIR}/api/libxtptraderapi.so)
+
