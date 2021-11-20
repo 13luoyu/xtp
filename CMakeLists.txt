@@ -12,4 +12,4 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 link_directories(${PROJECT_SOURCE_DIR}/api)
 target_link_libraries(XTPApiDemo ${PROJECT_SOURCE_DIR}/api/libxtpquoteapi.so)
 target_link_libraries(XTPApiDemo ${PROJECT_SOURCE_DIR}/api/libxtptraderapi.so)
-
+target_link_libraries(XTPApiDemo pthread)

@@ -158,13 +158,13 @@ int main()
 
 		//开始订阅,注意公网测试环境仅支持TCP方式，如果使用UDP方式会没有行情数据，实盘大多数使用UDP连接
 		//订阅行情
-		pQuoteApi->SubscribeMarketData(allInstruments, instrument_count, (XTP_EXCHANGE_TYPE)quote_exchange);
+		//pQuoteApi->SubscribeMarketData(allInstruments, instrument_count, (XTP_EXCHANGE_TYPE)quote_exchange);
 		//订阅逐笔行情
-		pQuoteApi->SubscribeTickByTick(allInstruments, instrument_count, (XTP_EXCHANGE_TYPE)quote_exchange);
+		//pQuoteApi->SubscribeTickByTick(allInstruments, instrument_count, (XTP_EXCHANGE_TYPE)quote_exchange);
 		//订阅所有行情
-		//pQuoteApi->SubscribeAllMarketData();
+		pQuoteApi->SubscribeAllMarketData();
 		//订阅所有逐笔行情
-		//pQuoteApi->SubscribeAllTickByTick();
+		pQuoteApi->SubscribeAllTickByTick();
 
 		//释放
 		for (int i = 0; i < instrument_count; i++) {

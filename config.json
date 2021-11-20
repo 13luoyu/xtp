@@ -37,6 +37,6 @@
     "exchange": 1
   },
   "hb_interval":15,
-  "quote_buffer_size":128,
+  "quote_buffer_size":512,
   "quote_protocol":1
 }

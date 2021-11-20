@@ -3,46 +3,18 @@
 #include <stdio.h>
 #include <fstream>
 #include <string>
-//#include <pthread.h>
+#include <string.h>
+#include "thread_pool.h"
 using namespace std;
 
 extern string depth_csv;
 extern string entrust_csv;
 extern string trade_csv;
+struct threadpool *pool;
 
-void MyQuoteSpi::OnError(XTPRI *error_info, bool is_last)
+void * WriteDepthMarketData(void *arg)
 {
-	cout << "--->>> "<< "OnRspError" << endl;
-	IsErrorRspInfo(error_info);
-}
-
-MyQuoteSpi::MyQuoteSpi()
-{
-}
-
-MyQuoteSpi::~MyQuoteSpi()
-{
-}
-
-void MyQuoteSpi::OnDisconnected(int reason)
-{
-	cout << "--->>> " << "OnDisconnected quote" << endl;
-	cout << "--->>> Reason = " << reason << endl;
-	exit(1);//if disconnect, exit and restart
-}
-
-void MyQuoteSpi::OnSubMarketData(XTPST *ticker, XTPRI *error_info, bool is_last)
-{
- 	cout << "OnRspSubMarketData -----" << endl;
-}
-
-void MyQuoteSpi::OnUnSubMarketData(XTPST *ticker, XTPRI *error_info, bool is_last)
-{
- 	cout << "OnRspUnSubMarketData -----------" << endl;
-}
-
-void MyQuoteSpi::OnDepthMarketData(XTPMD * market_data, int64_t bid1_qty[], int32_t bid1_count, int32_t max_bid1_count, int64_t ask1_qty[], int32_t ask1_count, int32_t max_ask1_count)
-{
+	XTPMD *market_data=(XTPMD *)arg;
 	ofstream os(depth_csv, ios::app);
 	// os<<"exchange_id, last_price, pre_close_price, open_price, high_price, low_price, close_price, "<<
 	// 	"upper_limit_price, lower_limit_price, pre_delta, curr_delta, data_time, qty, turnover, avg_price, "<<
@@ -70,6 +42,76 @@ void MyQuoteSpi::OnDepthMarketData(XTPMD * market_data, int64_t bid1_qty[], int3
 			os<<market_data->ticker_status[0]<<market_data->ticker_status[1]<<"\n";
 	}
 	os.close();
+	delete market_data;
+	return NULL;
+}
+
+void * WriteTickByTick(void *arg)
+{
+	XTPTBT *tbt_data=(XTPTBT *)arg;
+	if(tbt_data->type==XTP_TBT_ENTRUST)
+	{
+		ofstream os(entrust_csv, ios::app);
+		os<<tbt_data->exchange_id<<","<<tbt_data->data_time<<
+		",";
+		XTPTickByTickEntrust& entrust=tbt_data->entrust;
+		os<<entrust.channel_no<<","<<entrust.seq<<","<<
+		entrust.price<<","<<entrust.qty<<","<<entrust.side<<
+		","<<entrust.ord_type<<"\n";
+		os.close();
+	}
+	else if(tbt_data->type==XTP_TBT_TRADE)
+	{
+		ofstream os(trade_csv, ios::app);
+		os<<tbt_data->exchange_id<<","<<tbt_data->data_time<<",";
+		XTPTickByTickTrade &trade=tbt_data->trade;
+		os<<trade.channel_no<<","<<trade.seq<<","<<trade.price<<","
+		<<trade.qty<<","<<trade.money<<","<<trade.bid_no<<","<<
+		trade.ask_no<<","<<trade.trade_flag<<"\n";
+		os.close();
+	}
+	delete tbt_data;
+	return NULL;
+}
+
+void MyQuoteSpi::OnError(XTPRI *error_info, bool is_last)
+{
+	cout << "--->>> "<< "OnRspError" << endl;
+	IsErrorRspInfo(error_info);
+}
+
+MyQuoteSpi::MyQuoteSpi()
+{
+	pool=threadpool_init(100, 10);
+}
+
+MyQuoteSpi::~MyQuoteSpi()
+{
+	threadpool_destroy(pool);
+}
+
+void MyQuoteSpi::OnDisconnected(int reason)
+{
+	cout << "--->>> " << "OnDisconnected quote" << endl;
+	cout << "--->>> Reason = " << reason << endl;
+	exit(1);//if disconnect, exit and restart
+}
+
+void MyQuoteSpi::OnSubMarketData(XTPST *ticker, XTPRI *error_info, bool is_last)
+{
+ 	cout << "OnRspSubMarketData -----" << endl;
+}
+
+void MyQuoteSpi::OnUnSubMarketData(XTPST *ticker, XTPRI *error_info, bool is_last)
+{
+ 	cout << "OnRspUnSubMarketData -----------" << endl;
+}
+
+void MyQuoteSpi::OnDepthMarketData(XTPMD * market_data, int64_t bid1_qty[], int32_t bid1_count, int32_t max_bid1_count, int64_t ask1_qty[], int32_t ask1_count, int32_t max_ask1_count)
+{
+	XTPMD *data=new XTPMD;
+	memcpy(data, market_data, sizeof(market_data));
+	threadpool_add_job(pool, WriteDepthMarketData, data);
 }
 
 void MyQuoteSpi::OnSubOrderBook(XTPST *ticker, XTPRI *error_info, bool is_last)
@@ -99,27 +141,9 @@ void MyQuoteSpi::OnOrderBook(XTPOB *order_book)
 
 void MyQuoteSpi::OnTickByTick(XTPTBT *tbt_data)
 {
-	if(tbt_data->type==XTP_TBT_ENTRUST)
-	{
-		ofstream os(entrust_csv, ios::app);
-		os<<tbt_data->exchange_id<<","<<tbt_data->data_time<<
-		",";
-		XTPTickByTickEntrust& entrust=tbt_data->entrust;
-		os<<entrust.channel_no<<","<<entrust.seq<<","<<
-		entrust.price<<","<<entrust.qty<<","<<entrust.side<<
-		","<<entrust.ord_type<<"\n";
-		os.close();
-	}
-	else if(tbt_data->type==XTP_TBT_TRADE)
-	{
-		ofstream os(trade_csv, ios::app);
-		os<<tbt_data->exchange_id<<","<<tbt_data->data_time<<",";
-		XTPTickByTickTrade &trade=tbt_data->trade;
-		os<<trade.channel_no<<","<<trade.seq<<","<<trade.price<<","
-		<<trade.qty<<","<<trade.money<<","<<trade.bid_no<<","<<
-		trade.ask_no<<","<<trade.trade_flag<<"\n";
-		os.close();
-	}
+	XTPTBT *data=new XTPTBT;
+	memcpy(data, tbt_data, sizeof(tbt_data));
+	threadpool_add_job(pool, WriteTickByTick, data);
 }
 
 void MyQuoteSpi::OnQueryAllTickers(XTPQSI * ticker_info, XTPRI * error_info, bool is_last)
