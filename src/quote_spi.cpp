@@ -4,6 +4,7 @@
 #include <fstream>
 #include <string>
 #include <string.h>
+#include <stdlib.h>
 #include "thread_pool.h"
 using namespace std;
 
@@ -16,9 +17,6 @@ void * WriteDepthMarketData(void *arg)
 {
 	XTPMD *market_data=(XTPMD *)arg;
 	ofstream os(depth_csv, ios::app);
-	// os<<"exchange_id, last_price, pre_close_price, open_price, high_price, low_price, close_price, "<<
-	// 	"upper_limit_price, lower_limit_price, pre_delta, curr_delta, data_time, qty, turnover, avg_price, "<<
-	// 	"bid, ask, bid_qty, ask_qty, trades_count, ticker_status\n";
 	os<<market_data->exchange_id<<","<<market_data->ticker<<","<<
 	market_data->last_price<<","<<
 	market_data->pre_close_price<<","<<market_data->open_price<<","<<market_data->high_price<<","<<
@@ -39,9 +37,10 @@ void * WriteDepthMarketData(void *arg)
 		if(market_data->exchange_id==XTP_EXCHANGE_SH)
 			os<<market_data->ticker_status[0]<<market_data->ticker_status[1]<<market_data->ticker_status[2]<<"\n";
 		else if(market_data->exchange_id==XTP_EXCHANGE_SZ)
-			os<<market_data->ticker_status[0]<<market_data->ticker_status[1]<<"\n";
+			os<<market_data->ticker_status[0]<<market_data->ticker_status[1]<<endl;
 	}
 	os.close();
+
 	delete market_data;
 	return NULL;
 }
@@ -57,7 +56,7 @@ void * WriteTickByTick(void *arg)
 		XTPTickByTickEntrust& entrust=tbt_data->entrust;
 		os<<entrust.channel_no<<","<<entrust.seq<<","<<
 		entrust.price<<","<<entrust.qty<<","<<entrust.side<<
-		","<<entrust.ord_type<<"\n";
+		","<<entrust.ord_type<<endl;
 		os.close();
 	}
 	else if(tbt_data->type==XTP_TBT_TRADE)
@@ -67,7 +66,7 @@ void * WriteTickByTick(void *arg)
 		XTPTickByTickTrade &trade=tbt_data->trade;
 		os<<trade.channel_no<<","<<trade.seq<<","<<trade.price<<","
 		<<trade.qty<<","<<trade.money<<","<<trade.bid_no<<","<<
-		trade.ask_no<<","<<trade.trade_flag<<"\n";
+		trade.ask_no<<","<<trade.trade_flag<<endl;
 		os.close();
 	}
 	delete tbt_data;
@@ -109,8 +108,8 @@ void MyQuoteSpi::OnUnSubMarketData(XTPST *ticker, XTPRI *error_info, bool is_las
 
 void MyQuoteSpi::OnDepthMarketData(XTPMD * market_data, int64_t bid1_qty[], int32_t bid1_count, int32_t max_bid1_count, int64_t ask1_qty[], int32_t ask1_count, int32_t max_ask1_count)
 {
-	XTPMD *data=new XTPMD;
-	memcpy(data, market_data, sizeof(market_data));
+	void *data=malloc(sizeof(XTPMD));
+	memcpy(data, market_data, sizeof(XTPMD));
 	threadpool_add_job(pool, WriteDepthMarketData, data);
 }
 
@@ -142,7 +141,7 @@ void MyQuoteSpi::OnOrderBook(XTPOB *order_book)
 void MyQuoteSpi::OnTickByTick(XTPTBT *tbt_data)
 {
 	XTPTBT *data=new XTPTBT;
-	memcpy(data, tbt_data, sizeof(tbt_data));
+	memcpy(data, tbt_data, sizeof(XTPTBT));
 	threadpool_add_job(pool, WriteTickByTick, data);
 }
 
