@@ -82,7 +82,7 @@ void MyQuoteSpi::OnError(XTPRI *error_info, bool is_last)
 
 MyQuoteSpi::MyQuoteSpi()
 {
-	pool=threadpool_init(100, 10);
+	pool=threadpool_init(100, 1000);
 }
 
 MyQuoteSpi::~MyQuoteSpi()
