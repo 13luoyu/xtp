@@ -11,7 +11,7 @@ using namespace std;
 extern string depth_csv;
 extern string entrust_csv;
 extern string trade_csv;
-struct threadpool *pool;
+ThreadPool * pool=NULL;
 
 void * WriteDepthMarketData(void *arg)
 {
@@ -81,12 +81,12 @@ void MyQuoteSpi::OnError(XTPRI *error_info, bool is_last)
 
 MyQuoteSpi::MyQuoteSpi()
 {
-	pool=threadpool_init(100, 1000);
+	pool=new ThreadPool(100,1000);
 }
 
 MyQuoteSpi::~MyQuoteSpi()
 {
-	threadpool_destroy(pool);
+	delete pool;
 }
 
 void MyQuoteSpi::OnDisconnected(int reason)
@@ -110,7 +110,7 @@ void MyQuoteSpi::OnDepthMarketData(XTPMD * market_data, int64_t bid1_qty[], int3
 {
 	void *data=malloc(sizeof(XTPMD));
 	memcpy(data, market_data, sizeof(XTPMD));
-	threadpool_add_job(pool, WriteDepthMarketData, data);
+	pool->ThreadPoolAddJob(WriteDepthMarketData, data);
 }
 
 void MyQuoteSpi::OnSubOrderBook(XTPST *ticker, XTPRI *error_info, bool is_last)
@@ -142,7 +142,7 @@ void MyQuoteSpi::OnTickByTick(XTPTBT *tbt_data)
 {
 	XTPTBT *data=new XTPTBT;
 	memcpy(data, tbt_data, sizeof(XTPTBT));
-	threadpool_add_job(pool, WriteTickByTick, data);
+	pool->ThreadPoolAddJob(WriteTickByTick, data);
 }
 
 void MyQuoteSpi::OnQueryAllTickers(XTPQSI * ticker_info, XTPRI * error_info, bool is_last)
