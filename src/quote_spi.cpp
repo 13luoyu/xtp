@@ -5,6 +5,8 @@
 #include <string>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <sys/time.h>
 #include "thread_pool.h"
 using namespace std;
 
@@ -16,6 +18,23 @@ ThreadPool * pool=NULL;
 void * WriteDepthMarketData(void *arg)
 {
 	XTPMD *market_data=(XTPMD *)arg;
+	//获取本地时间
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	time_t t;
+	struct tm *tm;
+	time(&t);
+	tm=localtime(&t);
+	signed long tmp=0;
+	tmp+=tm->tm_year+1900;
+	tmp*=100;	tmp+=tm->tm_mon+1;
+	tmp*=100;	tmp+=tm->tm_mday;
+	tmp*=100;	tmp+=tm->tm_hour;
+	tmp*=100;	tmp+=tm->tm_min;
+	tmp*=100;	tmp+=tm->tm_sec;
+	tmp*=1000;	tmp+=tv.tv_usec/1000;
+	market_data->data_time=tmp;
+
 	ofstream os(depth_csv, ios::app);
 	os<<market_data->exchange_id<<","<<market_data->ticker<<","<<
 	market_data->last_price<<","<<
