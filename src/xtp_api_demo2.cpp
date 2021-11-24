@@ -81,13 +81,13 @@ int main()
 	if(is_entrust_empty)
 	{
     	std::ofstream os1(entrust_csv.c_str());
-    	os1<<"exchange_id, data_time, channel_no, seq, price, qty, side, ord_type\n";
+    	os1<<"exchange_id, ticker, data_time, channel_no, seq, price, qty, side, ord_type\n";
     	os1.close();
 	}
 	if(is_trade_empty)
 	{
     	std::ofstream os2(trade_csv.c_str());
-    	os2<<"exchange_id, data_time, channel_no, seq, price, qty, money, bid_no, ask_no, trade_flag\n";
+    	os2<<"exchange_id, ticker, data_time, channel_no, seq, price, qty, money, bid_no, ask_no, trade_flag\n";
     	os2.close();
 	}
 

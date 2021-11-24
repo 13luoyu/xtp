@@ -51,8 +51,8 @@ void * WriteTickByTick(void *arg)
 	if(tbt_data->type==XTP_TBT_ENTRUST)
 	{
 		ofstream os(entrust_csv, ios::app);
-		os<<tbt_data->exchange_id<<","<<tbt_data->data_time<<
-		",";
+		os<<tbt_data->exchange_id<<","<<tbt_data->ticker<<","<<
+		tbt_data->data_time<<",";
 		XTPTickByTickEntrust& entrust=tbt_data->entrust;
 		os<<entrust.channel_no<<","<<entrust.seq<<","<<
 		entrust.price<<","<<entrust.qty<<","<<entrust.side<<
@@ -62,7 +62,8 @@ void * WriteTickByTick(void *arg)
 	else if(tbt_data->type==XTP_TBT_TRADE)
 	{
 		ofstream os(trade_csv, ios::app);
-		os<<tbt_data->exchange_id<<","<<tbt_data->data_time<<",";
+		os<<tbt_data->exchange_id<<","<<tbt_data->ticker<<","
+		<<tbt_data->data_time<<",";
 		XTPTickByTickTrade &trade=tbt_data->trade;
 		os<<trade.channel_no<<","<<trade.seq<<","<<trade.price<<","
 		<<trade.qty<<","<<trade.money<<","<<trade.bid_no<<","<<
