@@ -109,6 +109,8 @@ void MyQuoteSpi::OnUnSubMarketData(XTPST *ticker, XTPRI *error_info, bool is_las
 
 void MyQuoteSpi::OnDepthMarketData(XTPMD * market_data, int64_t bid1_qty[], int32_t bid1_count, int32_t max_bid1_count, int64_t ask1_qty[], int32_t ask1_count, int32_t max_ask1_count)
 {
+	if(market_data->data_type==XTP_MARKETDATA_OPTION)
+		return;
 	void *data=malloc(sizeof(XTPMD));
 	memcpy(data, market_data, sizeof(XTPMD));
 	pool->ThreadPoolAddJob(WriteDepthMarketData, data);
