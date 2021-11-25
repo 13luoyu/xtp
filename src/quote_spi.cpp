@@ -10,6 +10,13 @@
 #include "thread_pool.h"
 using namespace std;
 
+extern string quote_server_ip;
+extern int quote_server_port;
+extern string quote_username;
+extern string quote_password;
+extern XTP_PROTOCOL_TYPE quote_protocol;
+extern XTP::API::QuoteApi* pQuoteApi;
+
 extern string depth_csv;
 extern string entrust_csv;
 extern string trade_csv;
@@ -54,7 +61,7 @@ void * WriteDepthMarketData(void *arg)
 	os<<market_data->trades_count<<",";
 	if(market_data->ticker_status[0]!=0){
 		if(market_data->exchange_id==XTP_EXCHANGE_SH)
-			os<<market_data->ticker_status[0]<<market_data->ticker_status[1]<<market_data->ticker_status[2]<<"\n";
+			os<<market_data->ticker_status[0]<<market_data->ticker_status[1]<<market_data->ticker_status[2]<<endl;
 		else if(market_data->exchange_id==XTP_EXCHANGE_SZ)
 			os<<market_data->ticker_status[0]<<market_data->ticker_status[1]<<endl;
 	}
@@ -113,7 +120,14 @@ void MyQuoteSpi::OnDisconnected(int reason)
 {
 	cout << "--->>> " << "OnDisconnected quote" << endl;
 	cout << "--->>> Reason = " << reason << endl;
-	exit(1);//if disconnect, exit and restart
+	//if disconnect, exit and restart
+	int loginResult=pQuoteApi->Login(quote_server_ip.c_str(), quote_server_port, quote_username.c_str(), quote_password.c_str(),quote_protocol);
+	if(loginResult==0){
+		//订阅所有行情
+		pQuoteApi->SubscribeAllMarketData();
+		//订阅所有逐笔行情
+		pQuoteApi->SubscribeAllTickByTick();
+	}
 }
 
 void MyQuoteSpi::OnSubMarketData(XTPST *ticker, XTPRI *error_info, bool is_last)

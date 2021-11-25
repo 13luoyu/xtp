@@ -1,8 +1,7 @@
 #/bin/bash
 
 time_begin="090000"
-time_end="160000"
-start_pid=0
+time_end="180000"
 
 while true
 do
@@ -15,20 +14,20 @@ do
 	then
         if [ $time_now -ge $time_begin -a $time_now -lt $time_end ]
         then
-            if [ $start_pid -ne 0 ]
-            then
-                kill -9 $start_pid
-            fi
-            echo "restart XTPApiDemo"
             ./XTPApiDemo &
-            start_pid=$!
+			echo "start process"
+            cat >> log.txt << EOF
+$time_now: start process
+EOF
         fi
     else
         if [ $time_now -ge $time_end ]
         then
-            echo "stop XTPApiDemo"
-            kill -9 $start_pid
-            start_pid=0
+        	kill -9 $xtpapidemo_pid
+            echo "end process"
+            cat >> log.txt << EOF
+$time_now: end process
+EOF
         fi
 	fi
 
