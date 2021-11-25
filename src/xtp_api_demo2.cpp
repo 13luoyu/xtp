@@ -116,7 +116,7 @@ int main()
 
 
     //初始化行情api
-	pQuoteApi = XTP::API::QuoteApi::CreateQuoteApi(client_id, filepath.c_str(), XTP_LOG_LEVEL_DEBUG);//log日志级别可以调整
+	pQuoteApi = XTP::API::QuoteApi::CreateQuoteApi(client_id, filepath.c_str(), XTP_LOG_LEVEL_ERROR);//log日志级别可以调整
 	MyQuoteSpi* pQuoteSpi = new MyQuoteSpi();
 	pQuoteApi->RegisterSpi(pQuoteSpi);
 
