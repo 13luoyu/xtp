@@ -138,6 +138,20 @@ void MyQuoteSpi::OnDisconnected(int reason)
 		//订阅所有逐笔行情
 		pQuoteApi->SubscribeAllTickByTick();
 	}
+	ofstream o("log.txt", ios::app);
+	time_t t;
+	struct tm *tm;
+	time(&t);
+	tm=localtime(&t);
+	signed long tmp=0;
+	tmp+=tm->tm_year+1900;
+	tmp*=100;	tmp+=tm->tm_mon+1;
+	tmp*=100;	tmp+=tm->tm_mday;
+	tmp*=100;	tmp+=tm->tm_hour;
+	tmp*=100;	tmp+=tm->tm_min;
+	tmp*=100;	tmp+=tm->tm_sec;
+	o<<tmp<<": restart process\n";
+	o.close();
 }
 
 void MyQuoteSpi::OnSubMarketData(XTPST *ticker, XTPRI *error_info, bool is_last)
