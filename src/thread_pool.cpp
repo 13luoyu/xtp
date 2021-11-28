@@ -88,6 +88,7 @@ int ThreadPool::ThreadPoolAddJob(void *(*callback_function)(void *arg), void *ar
     assert(arg != NULL);
 
     pthread_mutex_lock(&mutex);
+    if(queue_cur_num == queue_max_num)printf("queue full\n");
     //如果作业等待队列满，并且线程池未关闭，等待
     while(queue_cur_num == queue_max_num && 
         !(queue_close || pool_close)) {

@@ -21,10 +21,15 @@ extern string depth_csv;
 extern string entrust_csv;
 extern string trade_csv;
 ThreadPool * pool=NULL;
+const int buffersize=1000;
+XTPMD * buffer1[buffersize*10];
+XTPTBT * buffer2[buffersize*10];
+int b1=0, b2=0;
+int to1=buffersize, to2=buffersize;
 
 void * WriteDepthMarketData(void *arg)
 {
-	XTPMD *market_data=(XTPMD *)arg;
+	XTPMD **market_data=(XTPMD **)arg;
 	//获取本地时间
 	struct timeval tv;
 	gettimeofday(&tv, NULL);
@@ -40,63 +45,68 @@ void * WriteDepthMarketData(void *arg)
 	tmp*=100;	tmp+=tm->tm_min;
 	tmp*=100;	tmp+=tm->tm_sec;
 	tmp*=1000;	tmp+=tv.tv_usec/1000;
-	market_data->data_time=tmp;
 
 	ofstream os(depth_csv, ios::app);
-	os<<market_data->exchange_id<<","<<market_data->ticker<<","<<
-	market_data->last_price<<","<<
-	market_data->pre_close_price<<","<<market_data->open_price<<","<<market_data->high_price<<","<<
-	market_data->low_price<<","<<market_data->close_price<<","<<market_data->upper_limit_price<<","<<
-	market_data->lower_limit_price<<","<<market_data->pre_delta<<","<<market_data->curr_delta<<","<<
-	market_data->data_time<<","<<market_data->qty<<","<<market_data->turnover<<","<<market_data->avg_price<<
+	for(int c=0;c<buffersize;c++){
+	os<<market_data[c]->exchange_id<<","<<market_data[c]->ticker<<","<<
+	market_data[c]->last_price<<","<<
+	market_data[c]->pre_close_price<<","<<market_data[c]->open_price<<","<<market_data[c]->high_price<<","<<
+	market_data[c]->low_price<<","<<market_data[c]->close_price<<","<<market_data[c]->upper_limit_price<<","<<
+	market_data[c]->lower_limit_price<<","<<market_data[c]->pre_delta<<","<<market_data[c]->curr_delta<<","<<
+	tmp<<","<<market_data[c]->qty<<","<<market_data[c]->turnover<<","<<market_data[c]->avg_price<<
 	",";
 	for(int i=0;i<10;i++)
-		os<<market_data->bid[i]<<",";
+		os<<market_data[c]->bid[i]<<",";
 	for(int i=0;i<10;i++)
-		os<<market_data->ask[i]<<",";
+		os<<market_data[c]->ask[i]<<",";
 	for(int i=0;i<10;i++)
-		os<<market_data->bid_qty[i]<<",";
+		os<<market_data[c]->bid_qty[i]<<",";
 	for(int i=0;i<10;i++)
-		os<<market_data->ask_qty[i]<<",";
-	os<<market_data->trades_count<<",";
-	if(market_data->ticker_status[0]!=0){
-		if(market_data->exchange_id==XTP_EXCHANGE_SH)
-			os<<market_data->ticker_status[0]<<market_data->ticker_status[1]<<market_data->ticker_status[2]<<endl;
-		else if(market_data->exchange_id==XTP_EXCHANGE_SZ)
-			os<<market_data->ticker_status[0]<<market_data->ticker_status[1]<<endl;
+		os<<market_data[c]->ask_qty[i]<<",";
+	os<<market_data[c]->trades_count<<",";
+	if(market_data[c]->ticker_status[0]!=0){
+		if(market_data[c]->exchange_id==XTP_EXCHANGE_SH)
+			os<<market_data[c]->ticker_status[0]<<market_data[c]->ticker_status[1]<<market_data[c]->ticker_status[2]<<"\n";
+		else if(market_data[c]->exchange_id==XTP_EXCHANGE_SZ)
+			os<<market_data[c]->ticker_status[0]<<market_data[c]->ticker_status[1]<<"\n";
+	}
 	}
 	os.close();
 
-	delete market_data;
 	return NULL;
 }
 
 void * WriteTickByTick(void *arg)
 {
-	XTPTBT *tbt_data=(XTPTBT *)arg;
-	if(tbt_data->type==XTP_TBT_ENTRUST)
+	XTPTBT **tbt_data=(XTPTBT **)arg;
+	ofstream os(entrust_csv, ios::app);
+	ofstream os2(trade_csv, ios::app);
+	for(int c=0;c<buffersize;c++){
+	if(tbt_data[c]->type==XTP_TBT_ENTRUST)
 	{
-		ofstream os(entrust_csv, ios::app);
-		os<<tbt_data->exchange_id<<","<<tbt_data->ticker<<","<<
-		tbt_data->data_time<<",";
-		XTPTickByTickEntrust& entrust=tbt_data->entrust;
+		
+		os<<tbt_data[c]->exchange_id<<","<<tbt_data[c]->ticker<<","<<
+		tbt_data[c]->data_time<<",";
+		XTPTickByTickEntrust& entrust=tbt_data[c]->entrust;
 		os<<entrust.channel_no<<","<<entrust.seq<<","<<
 		entrust.price<<","<<entrust.qty<<","<<entrust.side<<
-		","<<entrust.ord_type<<endl;
-		os.close();
+		","<<entrust.ord_type<<"\n";
+		
 	}
-	else if(tbt_data->type==XTP_TBT_TRADE)
+	else if(tbt_data[c]->type==XTP_TBT_TRADE)
 	{
-		ofstream os(trade_csv, ios::app);
-		os<<tbt_data->exchange_id<<","<<tbt_data->ticker<<","
-		<<tbt_data->data_time<<",";
-		XTPTickByTickTrade &trade=tbt_data->trade;
-		os<<trade.channel_no<<","<<trade.seq<<","<<trade.price<<","
+		
+		os2<<tbt_data[c]->exchange_id<<","<<tbt_data[c]->ticker<<","
+		<<tbt_data[c]->data_time<<",";
+		XTPTickByTickTrade &trade=tbt_data[c]->trade;
+		os2<<trade.channel_no<<","<<trade.seq<<","<<trade.price<<","
 		<<trade.qty<<","<<trade.money<<","<<trade.bid_no<<","<<
-		trade.ask_no<<","<<trade.trade_flag<<endl;
-		os.close();
+		trade.ask_no<<","<<trade.trade_flag<<"\n";
+		
 	}
-	delete tbt_data;
+	}
+	os.close();
+	os2.close();
 	return NULL;
 }
 
@@ -108,7 +118,7 @@ void MyQuoteSpi::OnError(XTPRI *error_info, bool is_last)
 
 MyQuoteSpi::MyQuoteSpi()
 {
-	pool=new ThreadPool(100,1000);
+	pool=new ThreadPool(20,1000);
 }
 
 MyQuoteSpi::~MyQuoteSpi()
@@ -142,11 +152,19 @@ void MyQuoteSpi::OnUnSubMarketData(XTPST *ticker, XTPRI *error_info, bool is_las
 
 void MyQuoteSpi::OnDepthMarketData(XTPMD * market_data, int64_t bid1_qty[], int32_t bid1_count, int32_t max_bid1_count, int64_t ask1_qty[], int32_t ask1_count, int32_t max_ask1_count)
 {
-	if(market_data->data_type==XTP_MARKETDATA_OPTION)
-		return;
 	void *data=malloc(sizeof(XTPMD));
 	memcpy(data, market_data, sizeof(XTPMD));
-	pool->ThreadPoolAddJob(WriteDepthMarketData, data);
+	buffer1[b1++] = (XTPMD *)data;
+	if(b1==to1){
+		pool->ThreadPoolAddJob(WriteDepthMarketData, (void *)&buffer1[b1-buffersize]);
+		if(b1==10*buffersize){
+			b1=0;
+			to1=buffersize;
+		}
+		else{
+			to1+=buffersize;
+		}
+	}
 }
 
 void MyQuoteSpi::OnSubOrderBook(XTPST *ticker, XTPRI *error_info, bool is_last)
@@ -176,9 +194,19 @@ void MyQuoteSpi::OnOrderBook(XTPOB *order_book)
 
 void MyQuoteSpi::OnTickByTick(XTPTBT *tbt_data)
 {
-	XTPTBT *data=new XTPTBT;
+	void *data=malloc(sizeof(XTPTBT));
 	memcpy(data, tbt_data, sizeof(XTPTBT));
-	pool->ThreadPoolAddJob(WriteTickByTick, data);
+	buffer2[b2++]=(XTPTBT *)data;
+	if(b2==to2){
+		pool->ThreadPoolAddJob(WriteTickByTick, (void *)&buffer2[b2-buffersize]);
+		if(b2==10*buffersize){
+			b2=0;
+			to2=buffersize;
+		}
+		else{
+			to2+=buffersize;
+		}
+	}
 }
 
 void MyQuoteSpi::OnQueryAllTickers(XTPQSI * ticker_info, XTPRI * error_info, bool is_last)
