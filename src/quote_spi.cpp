@@ -144,7 +144,9 @@ void MyQuoteSpi::OnDisconnected(int reason)
 	cout << "--->>> " << "OnDisconnected quote" << endl;
 	cout << "--->>> Reason = " << reason << endl;
 	//if disconnect, exit and restart
-	int loginResult=pQuoteApi->Login(quote_server_ip.c_str(), quote_server_port, quote_username.c_str(), quote_password.c_str(),quote_protocol);
+	int loginResult=-1;
+	while(loginResult != 0)
+		loginResult = pQuoteApi->Login(quote_server_ip.c_str(), quote_server_port, quote_username.c_str(), quote_password.c_str(),quote_protocol);
 	if(loginResult==0){
 		//订阅所有行情
 		pQuoteApi->SubscribeAllMarketData();
