@@ -123,7 +123,7 @@ void MyQuoteSpi::OnError(XTPRI *error_info, bool is_last)
 
 MyQuoteSpi::MyQuoteSpi()
 {
-	pool=new ThreadPool(20,1000);
+	pool=new ThreadPool(80,1000);
 	for(int i=0;i<10;i++){
 		pthread_mutex_init(&buffer1_lock[i], NULL);
 		pthread_mutex_init(&buffer2_lock[i], NULL);
