@@ -24,11 +24,12 @@ extern string trade_csv;
 ThreadPool * pool=NULL;
 //缓冲区
 const int buffersize=1000;
-XTPMD * buffer1[buffersize*10];
-XTPTBT * buffer2[buffersize*10];
+const int buffernum=50;
+XTPMD * buffer1[buffersize*buffernum];
+XTPTBT * buffer2[buffersize*buffernum];
 //缓冲区锁，为的是互斥访问，但希望永远不要用到
-pthread_mutex_t buffer1_lock[10];
-pthread_mutex_t buffer2_lock[10];
+pthread_mutex_t buffer1_lock[buffernum];
+pthread_mutex_t buffer2_lock[buffernum];
 int b1=0, b2=0;
 int to1=buffersize, to2=buffersize;
 
@@ -123,8 +124,8 @@ void MyQuoteSpi::OnError(XTPRI *error_info, bool is_last)
 
 MyQuoteSpi::MyQuoteSpi()
 {
-	pool=new ThreadPool(80,1000);
-	for(int i=0;i<10;i++){
+	pool=new ThreadPool(50,100);
+	for(int i=0;i<buffernum;i++){
 		pthread_mutex_init(&buffer1_lock[i], NULL);
 		pthread_mutex_init(&buffer2_lock[i], NULL);
 	}
@@ -133,7 +134,7 @@ MyQuoteSpi::MyQuoteSpi()
 MyQuoteSpi::~MyQuoteSpi()
 {
 	delete pool;
-	for(int i=0;i<10;i++){
+	for(int i=0;i<buffernum;i++){
 		pthread_mutex_destroy(&buffer1_lock[i]);
 		pthread_mutex_destroy(&buffer2_lock[i]);
 	}
@@ -197,14 +198,13 @@ void MyQuoteSpi::OnDepthMarketData(XTPMD * market_data, int64_t bid1_qty[], int3
 	tmp*=100;	tmp+=tm->tm_sec;
 	tmp*=1000;	tmp+=tv.tv_usec/1000;
 	market_data->data_time=tmp;
-
 	void *data=malloc(sizeof(XTPMD));
 	memcpy(data, market_data, sizeof(XTPMD));
 	buffer1[b1++] = (XTPMD *)data;
 	if(b1==to1){
 		pool->ThreadPoolAddJob(WriteDepthMarketData, (void *)&buffer1[b1-buffersize]);
 		pthread_mutex_unlock(&buffer1_lock[(b1-buffersize)/buffersize]);
-		if(b1==10*buffersize){
+		if(b1==buffernum*buffersize){
 			b1=0;
 			to1=buffersize;
 		}
@@ -265,7 +265,7 @@ void MyQuoteSpi::OnTickByTick(XTPTBT *tbt_data)
 	if(b2==to2){
 		pool->ThreadPoolAddJob(WriteTickByTick, (void *)&buffer2[b2-buffersize]);
 		pthread_mutex_unlock(&buffer2_lock[(b2-buffersize)/buffersize]);
-		if(b2==10*buffersize){
+		if(b2==buffernum*buffersize){
 			b2=0;
 			to2=buffersize;
 		}
