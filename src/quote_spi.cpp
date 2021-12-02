@@ -24,7 +24,7 @@ extern string trade_csv;
 ThreadPool * pool=NULL;
 //缓冲区
 const int buffersize=1000;
-const int buffernum=50;
+const int buffernum=100;
 XTPMD * buffer1[buffersize*buffernum];
 XTPTBT * buffer2[buffersize*buffernum];
 //缓冲区锁，为的是互斥访问，但希望永远不要用到
@@ -95,18 +95,15 @@ void * WriteTickByTick(void *arg)
 			os<<entrust.channel_no<<","<<entrust.seq<<","<<
 			entrust.price<<","<<entrust.qty<<","<<entrust.side<<
 			","<<entrust.ord_type<<"\n";
-
 		}
 		else if(tbt_data[c]->type==XTP_TBT_TRADE)
 		{
-			
 			os2<<tbt_data[c]->exchange_id<<","<<tbt_data[c]->ticker<<","
 			<<tbt_data[c]->data_time<<",";
 			XTPTickByTickTrade &trade=tbt_data[c]->trade;
 			os2<<trade.channel_no<<","<<trade.seq<<","<<trade.price<<","
 			<<trade.qty<<","<<trade.money<<","<<trade.bid_no<<","<<
 			trade.ask_no<<","<<trade.trade_flag<<"\n";
-
 		}
 		free(tbt_data[c]);
 	}
@@ -124,7 +121,7 @@ void MyQuoteSpi::OnError(XTPRI *error_info, bool is_last)
 
 MyQuoteSpi::MyQuoteSpi()
 {
-	pool=new ThreadPool(50,100);
+	pool=new ThreadPool(buffernum*1.2,1000);
 	for(int i=0;i<buffernum;i++){
 		pthread_mutex_init(&buffer1_lock[i], NULL);
 		pthread_mutex_init(&buffer2_lock[i], NULL);
