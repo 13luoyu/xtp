@@ -1,4 +1,4 @@
-xtp api的demo测试程序
+xtp api的行情接收程序
 请将运行目录设置为build文件夹
 
 Demo程序需要配置文件config.json，

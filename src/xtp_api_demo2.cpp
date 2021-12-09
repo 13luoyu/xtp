@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <time.h>
+#include <sys/stat.h>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -31,10 +32,14 @@ int main()
 {
 	time_t time_now=time(0);
 	struct tm * p_tm=localtime(&time_now);
-	std::string date=std::to_string(p_tm->tm_year+1900)+std::to_string(p_tm->tm_mon+1)+std::to_string(p_tm->tm_mday);
-	depth_csv=date+"_depth.csv";
-	entrust_csv=date+"_entrust.csv";
-	trade_csv=date+"_trade.csv";
+	std::string date=std::to_string(p_tm->tm_year+1900)+std::to_string(p_tm->tm_mon+1);
+	if(p_tm->tm_mday <10)
+		date += "0";
+	date += std::to_string(p_tm->tm_mday);
+	mkdir(date.c_str(), S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH);
+	depth_csv=date+"/depth.csv";
+	entrust_csv=date+"/entrust.csv";
+	trade_csv=date+"/trade.csv";
 
 	//Judge whether the file is empty, if it is, add the title, else do nothing
 	bool is_depth_empty=false, is_entrust_empty=false, is_trade_empty=false;

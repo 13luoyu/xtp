@@ -5,8 +5,8 @@
   "account_key":"b8aa7173bba3470e390d787219b2112e",
   "account": [
     {
-      "user": "215014579",
-      "password": "rwCnfNk6"
+      "user": "215014237",
+      "password": "aVs7peyz"
     }
   ],
   "trade_port": 6102,
@@ -28,8 +28,8 @@
   ],
   "quote_ip": "119.3.103.38",
   "quote_port": 6002,
-  "quote_user": "215014579",
-  "quote_password": "rwCnfNk6",
+  "quote_user": "215014237",
+  "quote_password": "aVs7peyz",
   "quote_ticker": {
     "instrument": [
       "600120"

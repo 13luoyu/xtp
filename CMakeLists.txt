@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.14)	
-project(XTPApiDemo)
+project(XTP)
 add_definitions(-std=c++17)
 
 file(GLOB APP_HEAD ${PROJECT_SOURCE_DIR}/src/*.h)
