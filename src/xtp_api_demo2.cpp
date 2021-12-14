@@ -36,7 +36,8 @@ int main()
 	if(p_tm->tm_mday <10)
 		date += "0";
 	date += std::to_string(p_tm->tm_mday);
-	mkdir(date.c_str(), S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH);
+	umask(0);
+	mkdir(date.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);//775
 	depth_csv=date+"/depth.csv";
 	entrust_csv=date+"/entrust.csv";
 	trade_csv=date+"/trade.csv";
