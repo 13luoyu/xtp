@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.14)	
 project(XTP)
 add_definitions(-std=c++17)
+add_definitions(-mcmodel=large)
 
 file(GLOB APP_HEAD ${PROJECT_SOURCE_DIR}/src/*.h)
 file(GLOB APP_SRC ${PROJECT_SOURCE_DIR}/src/*.cpp)

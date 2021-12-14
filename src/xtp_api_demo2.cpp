@@ -15,6 +15,7 @@
 #include "FileUtils.h"
 #include "xtp_quote_api.h"
 #include "quote_spi.h"
+#include <pthread.h>
 
 FileUtils* fileUtils = NULL;
 std::string quote_server_ip;
@@ -24,9 +25,21 @@ std::string quote_password;
 XTP_PROTOCOL_TYPE quote_protocol = XTP_PROTOCOL_UDP;
 XTP::API::QuoteApi* pQuoteApi;
 
+//文件名
 std::string depth_csv;
 std::string entrust_csv;
 std::string trade_csv;
+//结束标志
+std::string msg;
+
+extern void * WriteDepthMarketData();
+extern void * WriteTickByTick();
+void * CinFunction(void * a){
+	while(msg!="exit"){
+		std::cin>>msg;
+	}
+	return NULL;
+}
 
 int main()
 {
@@ -148,21 +161,32 @@ int main()
 		std::cout << "Login to server error, " << error_info->error_id << " : " << error_info->error_msg << std::endl;
 	
 	}
+	pthread_t* cin_thread;
+	pthread_create(cin_thread, NULL, CinFunction, NULL);
 
     while(true)
     {
-// #ifdef _WIN32
-// 		Sleep(1000);
-// #else
-// 		sleep(1);
-// #endif // WIN32
-		std::string msg;
-		std::cin>>msg;
-		if(msg=="exit"){
+#ifdef _WIN32
+		Sleep(10000);
+#else
+		sleep(10);
+#endif // WIN32
+		time_t t;
+		struct tm *tm;
+		time(&t);
+		tm=localtime(&t);
+		if(tm->tm_hour >= 18 && tm->tm_min >= 30  ||  msg=="exit")
 			break;
-		}
     }
 	pQuoteApi->Logout();
 	pQuoteApi->Release();
+	pthread_join(*cin_thread, NULL);
+
+	//写文件
+	std::cout<<"Writing files.\n";
+	WriteDepthMarketData();
+	WriteTickByTick();
+	std::cout<<"Write files complete.\n";
+
 	return 0;
 }

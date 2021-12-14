@@ -7,7 +7,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/time.h>
-#include "thread_pool.h"
 using namespace std;
 
 extern string quote_server_ip;
@@ -20,30 +19,18 @@ extern XTP::API::QuoteApi* pQuoteApi;
 extern string depth_csv;
 extern string entrust_csv;
 extern string trade_csv;
-//线程池
-ThreadPool * pool=NULL;
-//缓冲区
-const int buffersize=1000;
-const int buffernum=100;
-XTPMD * buffer1[buffersize*buffernum];
-XTPTBT * buffer2[buffersize*buffernum];
-//缓冲区锁，为的是互斥访问，但希望永远不要用到
-pthread_mutex_t buffer1_lock[buffernum];
-pthread_mutex_t buffer2_lock[buffernum];
-int b1=0, b2=0;
-int to1=buffersize, to2=buffersize;
+//缓冲区，存储一天所有数据的指针
+const int buffersize1 = 100000000;
+const int buffersize2 = 200000000;
+XTPMD * buffer1[buffersize1];
+XTPTBT * buffer2[buffersize2];
+int cnt1=0, cnt2=0;
 
-void * WriteDepthMarketData(void *arg)
+void * WriteDepthMarketData()
 {
-	XTPMD **market_data=(XTPMD **)arg;
-	XTPMD **t_data=(XTPMD **)malloc(8*buffersize);
-	pthread_mutex_lock(&buffer1_lock[(market_data-buffer1)/8/buffersize]);
-	memcpy(t_data, market_data, 8*buffersize);
-	pthread_mutex_unlock(&buffer1_lock[(market_data-buffer1)/8/buffersize]);
-	market_data=t_data;
-	
+	XTPMD **market_data = buffer1;
 	ofstream os(depth_csv, ios::app);
-	for(int c=0;c<buffersize;c++){
+	for(int c=0;c<buffersize1;c++){
 		os<<market_data[c]->exchange_id<<","<<market_data[c]->ticker<<","<<
 		market_data[c]->last_price<<","<<
 		market_data[c]->pre_close_price<<","<<market_data[c]->open_price<<","<<market_data[c]->high_price<<","<<
@@ -66,7 +53,7 @@ void * WriteDepthMarketData(void *arg)
 			else if(market_data[c]->exchange_id==XTP_EXCHANGE_SZ)
 				os<<market_data[c]->ticker_status[0]<<market_data[c]->ticker_status[1];
 		}
-		os<<"\n";
+		os<<endl;
 		free(market_data[c]);
 	}
 	os.close();
@@ -75,19 +62,12 @@ void * WriteDepthMarketData(void *arg)
 	return NULL;
 }
 
-void * WriteTickByTick(void *arg)
+void * WriteTickByTick()
 {
-	XTPTBT **tbt_data = (XTPTBT **)arg;
-	//将buffer2的指针数据拷贝到新的地方，这样不用一直锁着buffer2
-	XTPTBT **t_data = (XTPTBT **)malloc(8*buffersize);
-	pthread_mutex_lock(&buffer2_lock[(tbt_data-buffer2)/8/buffersize]);
-	memcpy(t_data, tbt_data, 8*buffersize);
-	pthread_mutex_unlock(&buffer2_lock[(tbt_data-buffer2)/8/buffersize]);
-	tbt_data=t_data;
-
+	XTPTBT **tbt_data = buffer2;
 	ofstream os(entrust_csv, ios::app);
 	ofstream os2(trade_csv, ios::app);
-	for(int c=0;c<buffersize;c++) {
+	for(int c=0;c<buffersize2;c++) {
 		if(tbt_data[c]->type==XTP_TBT_ENTRUST)
 		{
 			os<<tbt_data[c]->exchange_id<<","<<tbt_data[c]->ticker<<","<<
@@ -95,7 +75,7 @@ void * WriteTickByTick(void *arg)
 			XTPTickByTickEntrust& entrust=tbt_data[c]->entrust;
 			os<<entrust.channel_no<<","<<entrust.seq<<","<<
 			entrust.price<<","<<entrust.qty<<","<<entrust.side<<
-			","<<entrust.ord_type<<"\n";
+			","<<entrust.ord_type<<endl;
 		}
 		else if(tbt_data[c]->type==XTP_TBT_TRADE)
 		{
@@ -104,7 +84,7 @@ void * WriteTickByTick(void *arg)
 			XTPTickByTickTrade &trade=tbt_data[c]->trade;
 			os2<<trade.channel_no<<","<<trade.seq<<","<<trade.price<<","
 			<<trade.qty<<","<<trade.money<<","<<trade.bid_no<<","<<
-			trade.ask_no<<","<<trade.trade_flag<<"\n";
+			trade.ask_no<<","<<trade.trade_flag<<endl;
 		}
 		free(tbt_data[c]);
 	}
@@ -122,20 +102,12 @@ void MyQuoteSpi::OnError(XTPRI *error_info, bool is_last)
 
 MyQuoteSpi::MyQuoteSpi()
 {
-	pool=new ThreadPool(buffernum*1.2,1000);
-	for(int i=0;i<buffernum;i++){
-		pthread_mutex_init(&buffer1_lock[i], NULL);
-		pthread_mutex_init(&buffer2_lock[i], NULL);
-	}
+
 }
 
 MyQuoteSpi::~MyQuoteSpi()
 {
-	delete pool;
-	for(int i=0;i<buffernum;i++){
-		pthread_mutex_destroy(&buffer1_lock[i]);
-		pthread_mutex_destroy(&buffer2_lock[i]);
-	}
+	
 }
 
 void MyQuoteSpi::OnDisconnected(int reason)
@@ -200,19 +172,7 @@ void MyQuoteSpi::OnDepthMarketData(XTPMD * market_data, int64_t bid1_qty[], int3
 	market_data->data_time=tmp;
 	void *data=malloc(sizeof(XTPMD));
 	memcpy(data, market_data, sizeof(XTPMD));
-	buffer1[b1++] = (XTPMD *)data;
-	if(b1==to1){
-		pool->ThreadPoolAddJob(WriteDepthMarketData, (void *)&buffer1[b1-buffersize]);
-		pthread_mutex_unlock(&buffer1_lock[(b1-buffersize)/buffersize]);
-		if(b1==buffernum*buffersize){
-			b1=0;
-			to1=buffersize;
-		}
-		else{
-			to1+=buffersize;
-		}
-		pthread_mutex_lock(&buffer1_lock[b1/buffersize]);
-	}
+	buffer1[cnt1++] = (XTPMD *)data;
 }
 
 void MyQuoteSpi::OnSubOrderBook(XTPST *ticker, XTPRI *error_info, bool is_last)
@@ -261,19 +221,7 @@ void MyQuoteSpi::OnTickByTick(XTPTBT *tbt_data)
 
 	void *data=malloc(sizeof(XTPTBT));
 	memcpy(data, tbt_data, sizeof(XTPTBT));
-	buffer2[b2++]=(XTPTBT *)data;
-	if(b2==to2){
-		pool->ThreadPoolAddJob(WriteTickByTick, (void *)&buffer2[b2-buffersize]);
-		pthread_mutex_unlock(&buffer2_lock[(b2-buffersize)/buffersize]);
-		if(b2==buffernum*buffersize){
-			b2=0;
-			to2=buffersize;
-		}
-		else{
-			to2+=buffersize;
-		}
-		pthread_mutex_lock(&buffer2_lock[b2/buffersize]);
-	}
+	buffer2[cnt2++]=(XTPTBT *)data;
 }
 
 void MyQuoteSpi::OnQueryAllTickers(XTPQSI * ticker_info, XTPRI * error_info, bool is_last)
