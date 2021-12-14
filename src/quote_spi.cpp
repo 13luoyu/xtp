@@ -62,10 +62,11 @@ void * WriteDepthMarketData(void *arg)
 		os<<market_data[c]->trades_count<<",";
 		if(market_data[c]->ticker_status[0]!=0){
 			if(market_data[c]->exchange_id==XTP_EXCHANGE_SH)
-				os<<market_data[c]->ticker_status[0]<<market_data[c]->ticker_status[1]<<market_data[c]->ticker_status[2]<<"\n";
+				os<<market_data[c]->ticker_status[0]<<market_data[c]->ticker_status[1]<<market_data[c]->ticker_status[2];
 			else if(market_data[c]->exchange_id==XTP_EXCHANGE_SZ)
-				os<<market_data[c]->ticker_status[0]<<market_data[c]->ticker_status[1]<<"\n";
+				os<<market_data[c]->ticker_status[0]<<market_data[c]->ticker_status[1];
 		}
+		os<<"\n";
 		free(market_data[c]);
 	}
 	os.close();
@@ -179,6 +180,8 @@ void MyQuoteSpi::OnUnSubMarketData(XTPST *ticker, XTPRI *error_info, bool is_las
 
 void MyQuoteSpi::OnDepthMarketData(XTPMD * market_data, int64_t bid1_qty[], int32_t bid1_count, int32_t max_bid1_count, int64_t ask1_qty[], int32_t ask1_count, int32_t max_ask1_count)
 {
+	if(market_data->data_time==XTP_MARKETDATA_OPTION)//期权忽略
+		return;
 	//获取本地时间
 	struct timeval tv;
 	gettimeofday(&tv, NULL);
