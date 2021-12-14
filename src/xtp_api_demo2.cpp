@@ -41,7 +41,7 @@ void * CinFunction(void * a){
 	return NULL;
 }
 
-int main()
+int main(int argc, char **argv)
 {
 	time_t time_now=time(0);
 	struct tm * p_tm=localtime(&time_now);
@@ -164,6 +164,15 @@ int main()
 	pthread_t* cin_thread;
 	pthread_create(cin_thread, NULL, CinFunction, NULL);
 
+	int end_time_hour=15, end_time_min=30;
+	if(argc == 2){
+		end_time_hour = atoi(argv[0]);
+		end_time_min = atoi(argv[1]);
+		if(end_time_hour >= 24 || end_time_hour < 0 || end_time_min < 0 || end_time_min >= 60){
+			end_time_hour = 15;
+			end_time_min = 30;
+		}
+	}
     while(true)
     {
 #ifdef _WIN32
@@ -175,7 +184,7 @@ int main()
 		struct tm *tm;
 		time(&t);
 		tm=localtime(&t);
-		if(tm->tm_hour >= 18 && tm->tm_min >= 30  ||  msg=="exit")
+		if(tm->tm_hour >= end_time_hour && tm->tm_min >= end_time_min  ||  msg=="exit")
 			break;
     }
 	pQuoteApi->Logout();
