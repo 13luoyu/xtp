@@ -22,15 +22,15 @@ extern string trade_csv;
 //缓冲区，存储一天所有数据的指针
 const int buffersize1 = 100000000;
 const int buffersize2 = 200000000;
-XTPMD * buffer1[buffersize1];
-XTPTBT * buffer2[buffersize2];
+XTPMD ** buffer1 = new XTPMD * [buffersize1];
+XTPTBT ** buffer2 = new XTPTBT * [buffersize2];
 int cnt1=0, cnt2=0;
 
 void * WriteDepthMarketData()
 {
 	XTPMD **market_data = buffer1;
 	ofstream os(depth_csv, ios::app);
-	for(int c=0;c<buffersize1;c++){
+	for(int c=0;c<cnt1;c++){
 		os<<market_data[c]->exchange_id<<","<<market_data[c]->ticker<<","<<
 		market_data[c]->last_price<<","<<
 		market_data[c]->pre_close_price<<","<<market_data[c]->open_price<<","<<market_data[c]->high_price<<","<<
@@ -57,7 +57,7 @@ void * WriteDepthMarketData()
 		free(market_data[c]);
 	}
 	os.close();
-	free(market_data);
+	delete[] market_data;
 
 	return NULL;
 }
@@ -67,7 +67,7 @@ void * WriteTickByTick()
 	XTPTBT **tbt_data = buffer2;
 	ofstream os(entrust_csv, ios::app);
 	ofstream os2(trade_csv, ios::app);
-	for(int c=0;c<buffersize2;c++) {
+	for(int c=0;c<cnt2;c++) {
 		if(tbt_data[c]->type==XTP_TBT_ENTRUST)
 		{
 			os<<tbt_data[c]->exchange_id<<","<<tbt_data[c]->ticker<<","<<
@@ -90,7 +90,7 @@ void * WriteTickByTick()
 	}
 	os.close();
 	os2.close();
-	free(tbt_data);
+	delete[] tbt_data;
 	return NULL;
 }
 
