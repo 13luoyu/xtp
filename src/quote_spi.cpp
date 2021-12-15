@@ -21,9 +21,9 @@ extern string entrust_csv;
 extern string trade_csv;
 //缓冲区，存储一天所有数据的指针
 const int buffersize1 = 100000000;
-const int buffersize2 = 200000000;
-XTPMD ** buffer1 = new XTPMD * [buffersize1];
-XTPTBT ** buffer2 = new XTPTBT * [buffersize2];
+const long long buffersize2 = 400000000;
+XTPMD ** buffer1 = (XTPMD **)malloc(8 * buffersize1);
+XTPTBT ** buffer2 = (XTPTBT **)malloc(8 * buffersize2);
 int cnt1=0, cnt2=0;
 
 void * WriteDepthMarketData()
@@ -57,7 +57,7 @@ void * WriteDepthMarketData()
 		free(market_data[c]);
 	}
 	os.close();
-	delete[] market_data;
+	free(market_data);
 
 	return NULL;
 }
@@ -90,7 +90,7 @@ void * WriteTickByTick()
 	}
 	os.close();
 	os2.close();
-	delete[] tbt_data;
+	free(tbt_data);
 	return NULL;
 }
 
@@ -114,7 +114,6 @@ void MyQuoteSpi::OnDisconnected(int reason)
 {
 	cout << "--->>> " << "OnDisconnected quote" << endl;
 	cout << "--->>> Reason = " << reason << endl;
-	//if disconnect, exit and restart
 	int loginResult=-1;
 	while(loginResult != 0)
 		loginResult = pQuoteApi->Login(quote_server_ip.c_str(), quote_server_port, quote_username.c_str(), quote_password.c_str(),quote_protocol);

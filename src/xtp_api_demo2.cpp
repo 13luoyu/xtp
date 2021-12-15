@@ -138,6 +138,7 @@ int main(int argc, char **argv)
 	pQuoteApi = XTP::API::QuoteApi::CreateQuoteApi(client_id, filepath.c_str(), XTP_LOG_LEVEL_ERROR);//log日志级别可以调整
 	MyQuoteSpi* pQuoteSpi = new MyQuoteSpi();
 	pQuoteApi->RegisterSpi(pQuoteSpi);
+	
 
 	//设定行情服务器超时时间，单位为秒
 	pQuoteApi->SetHeartBeatInterval(heat_beat_interval); //此为1.1.16新增接口
@@ -161,8 +162,10 @@ int main(int argc, char **argv)
 		std::cout << "Login to server error, " << error_info->error_id << " : " << error_info->error_msg << std::endl;
 	
 	}
-	pthread_t* cin_thread;
-	pthread_create(cin_thread, NULL, CinFunction, NULL);
+	//todo
+	pthread_t cin_thread;
+	pthread_create(&cin_thread, NULL, CinFunction, NULL);
+	
 
 	int end_time_hour=15, end_time_min=30;
 	if(argc == 2){
@@ -189,7 +192,7 @@ int main(int argc, char **argv)
     }
 	pQuoteApi->Logout();
 	pQuoteApi->Release();
-	pthread_join(*cin_thread, NULL);
+	pthread_join(cin_thread, NULL);
 
 	//写文件
 	std::cout<<"Writing files.\n";
