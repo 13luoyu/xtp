@@ -15,7 +15,6 @@
 #include "FileUtils.h"
 #include "xtp_quote_api.h"
 #include "quote_spi.h"
-#include <pthread.h>
 
 FileUtils* fileUtils = NULL;
 std::string quote_server_ip;
@@ -29,17 +28,9 @@ XTP::API::QuoteApi* pQuoteApi;
 std::string depth_csv;
 std::string entrust_csv;
 std::string trade_csv;
-//结束标志
-std::string msg;
 
 extern void * WriteDepthMarketData();
 extern void * WriteTickByTick();
-void * CinFunction(void * a){
-	while(msg!="exit"){
-		std::cin>>msg;
-	}
-	return NULL;
-}
 
 int main(int argc, char **argv)
 {
@@ -162,15 +153,12 @@ int main(int argc, char **argv)
 		std::cout << "Login to server error, " << error_info->error_id << " : " << error_info->error_msg << std::endl;
 	
 	}
-	//todo
-	pthread_t cin_thread;
-	pthread_create(&cin_thread, NULL, CinFunction, NULL);
 	
 
 	int end_time_hour=15, end_time_min=30;
-	if(argc == 2){
-		end_time_hour = atoi(argv[0]);
-		end_time_min = atoi(argv[1]);
+	if(argc == 3){
+		end_time_hour = atoi(argv[1]);
+		end_time_min = atoi(argv[2]);
 		if(end_time_hour >= 24 || end_time_hour < 0 || end_time_min < 0 || end_time_min >= 60){
 			end_time_hour = 15;
 			end_time_min = 30;
@@ -179,26 +167,31 @@ int main(int argc, char **argv)
     while(true)
     {
 #ifdef _WIN32
-		Sleep(10000);
+		Sleep(1000);
 #else
-		sleep(10);
+		sleep(1);
 #endif // WIN32
 		time_t t;
 		struct tm *tm;
 		time(&t);
 		tm=localtime(&t);
-		if(tm->tm_hour >= end_time_hour && tm->tm_min >= end_time_min  ||  msg=="exit")
+		if(tm->tm_hour >= end_time_hour && tm->tm_min >= end_time_min)
 			break;
     }
+	pQuoteApi->UnSubscribeAllMarketData();
+	pQuoteApi->UnSubscribeAllTickByTick();
 	pQuoteApi->Logout();
 	pQuoteApi->Release();
-	pthread_join(cin_thread, NULL);
 
 	//写文件
+	std::ofstream o("log.txt", std::ios::app);
+	o<<"Writing files.\n";
 	std::cout<<"Writing files.\n";
 	WriteDepthMarketData();
 	WriteTickByTick();
 	std::cout<<"Write files complete.\n";
+	o<<"Write files complete.\n";
+	o.close();
 
 	return 0;
 }

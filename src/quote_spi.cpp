@@ -20,8 +20,8 @@ extern string depth_csv;
 extern string entrust_csv;
 extern string trade_csv;
 //缓冲区，存储一天所有数据的指针
-const int buffersize1 = 100000000;
-const long long buffersize2 = 400000000;
+const int buffersize1 = 50000000;
+const long long buffersize2 = 300000000;
 XTPMD ** buffer1 = (XTPMD **)malloc(8 * buffersize1);
 XTPTBT ** buffer2 = (XTPTBT **)malloc(8 * buffersize2);
 int cnt1=0, cnt2=0;
@@ -102,18 +102,37 @@ void MyQuoteSpi::OnError(XTPRI *error_info, bool is_last)
 
 MyQuoteSpi::MyQuoteSpi()
 {
-
 }
 
 MyQuoteSpi::~MyQuoteSpi()
 {
-	
+	ofstream out("log.txt", ios::app);
+	out<<"buffersize1:"<<cnt1<<endl;
+	out<<"buffersize2:"<<cnt2<<endl;
+	out.close();
 }
 
 void MyQuoteSpi::OnDisconnected(int reason)
 {
 	cout << "--->>> " << "OnDisconnected quote" << endl;
 	cout << "--->>> Reason = " << reason << endl;
+
+	time_t t;
+	struct tm *tm;
+	time(&t);
+	tm=localtime(&t);
+	if(tm->tm_hour<9 || tm->tm_hour>=15&&tm->tm_min>=30)  // 时间外
+		return;
+	signed long tmp=0;
+	tmp+=tm->tm_year+1900;
+	tmp*=100;	tmp+=tm->tm_mon+1;
+	tmp*=100;	tmp+=tm->tm_mday;
+	tmp*=100;	tmp+=tm->tm_hour;
+	tmp*=100;	tmp+=tm->tm_min;
+	tmp*=100;	tmp+=tm->tm_sec;
+	ofstream o("log.txt", ios::app);
+	o<<tmp<<": restart process\n";
+	o.close();
 	int loginResult=-1;
 	while(loginResult != 0)
 		loginResult = pQuoteApi->Login(quote_server_ip.c_str(), quote_server_port, quote_username.c_str(), quote_password.c_str(),quote_protocol);
@@ -123,20 +142,6 @@ void MyQuoteSpi::OnDisconnected(int reason)
 		//订阅所有逐笔行情
 		pQuoteApi->SubscribeAllTickByTick();
 	}
-	ofstream o("log.txt", ios::app);
-	time_t t;
-	struct tm *tm;
-	time(&t);
-	tm=localtime(&t);
-	signed long tmp=0;
-	tmp+=tm->tm_year+1900;
-	tmp*=100;	tmp+=tm->tm_mon+1;
-	tmp*=100;	tmp+=tm->tm_mday;
-	tmp*=100;	tmp+=tm->tm_hour;
-	tmp*=100;	tmp+=tm->tm_min;
-	tmp*=100;	tmp+=tm->tm_sec;
-	o<<tmp<<": restart process\n";
-	o.close();
 }
 
 void MyQuoteSpi::OnSubMarketData(XTPST *ticker, XTPRI *error_info, bool is_last)
@@ -171,6 +176,16 @@ void MyQuoteSpi::OnDepthMarketData(XTPMD * market_data, int64_t bid1_qty[], int3
 	market_data->data_time=tmp;
 	void *data=malloc(sizeof(XTPMD));
 	memcpy(data, market_data, sizeof(XTPMD));
+	if(cnt1==buffersize1){
+		ofstream out("log.txt", ios::app);
+		out<<tmp<<": buffer1 full\n";
+		out.close();
+		cnt1++;
+	}
+	else if(cnt1>buffersize1){
+		cnt1++;
+		return;
+	}
 	buffer1[cnt1++] = (XTPMD *)data;
 }
 
