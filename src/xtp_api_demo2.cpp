@@ -28,6 +28,8 @@ XTP::API::QuoteApi* pQuoteApi;
 std::string depth_csv;
 std::string entrust_csv;
 std::string trade_csv;
+extern int cnt1;
+extern int cnt2;
 
 extern void * WriteDepthMarketData();
 extern void * WriteTickByTick();
@@ -182,7 +184,11 @@ int main(int argc, char **argv)
 	pQuoteApi->UnSubscribeAllTickByTick();
 	pQuoteApi->Logout();
 	pQuoteApi->Release();
-
+	
+	std::ofstream out("log.txt", std::ios::app);
+	out<<"buffersize1:"<<cnt1<<std::endl;
+	out<<"buffersize2:"<<cnt2<<std::endl;
+	out.close();
 	//写文件
 	std::ofstream o("log.txt", std::ios::app);
 	o<<"Writing files.\n";

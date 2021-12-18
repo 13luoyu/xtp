@@ -106,10 +106,7 @@ MyQuoteSpi::MyQuoteSpi()
 
 MyQuoteSpi::~MyQuoteSpi()
 {
-	ofstream out("log.txt", ios::app);
-	out<<"buffersize1:"<<cnt1<<endl;
-	out<<"buffersize2:"<<cnt2<<endl;
-	out.close();
+	
 }
 
 void MyQuoteSpi::OnDisconnected(int reason)
