@@ -181,6 +181,7 @@ void MyQuoteSpi::OnDepthMarketData(XTPMD * market_data, int64_t bid1_qty[], int3
 		out<<tmp<<": buffer1 full\n";
 		out.close();
 		cnt1++;
+		return;
 	}
 	else if(cnt1>buffersize1){
 		cnt1++;
@@ -235,6 +236,17 @@ void MyQuoteSpi::OnTickByTick(XTPTBT *tbt_data)
 
 	void *data=malloc(sizeof(XTPTBT));
 	memcpy(data, tbt_data, sizeof(XTPTBT));
+	if(cnt2==buffersize2){
+		ofstream out("log.txt", ios::app);
+		out<<tmp<<": buffer2 full\n";
+		out.close();
+		cnt2++;
+		return;
+	}
+	else if(cnt2>buffersize2){
+		cnt2++;
+		return;
+	}
 	buffer2[cnt2++]=(XTPTBT *)data;
 }
 
