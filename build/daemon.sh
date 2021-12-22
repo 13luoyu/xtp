@@ -23,7 +23,6 @@ EOF
     else
         if [ $time_now -ge $time_end ]
         then
-        	kill -9 $xtp_pid
             echo "end process"
             cat >> log.txt << EOF
 $time_now: end process
