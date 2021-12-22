@@ -18,6 +18,7 @@ struct Op_Data{
 int main()
 {
     umask(0);
+    mkdir("time_h5", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
     mkdir("time_h5/depth_market", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
     mkdir("time_h5/transaction", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
     mkdir("time_h5/order", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
@@ -65,7 +66,7 @@ herr_t FeaturesDB_func(hid_t group, const char *name, void *op_data)
 
 herr_t Stock_func(hid_t group, const char *name, void *op_data)
 {
-    int buffer_size = 6000;
+    int buffer_size = 1000000;
     int buffer[buffer_size]={0};
     Op_Data * data = (Op_Data *)op_data;
     //对T进行处理
