@@ -1,12 +1,9 @@
 #include <fstream>
 #include <iostream>
-#include <stdio.h>
 #include <string>
-#include <unordered_map>
 #include <sys/stat.h>
 using namespace std;
 
-unordered_map<string, FILE *> map;
 void split(const string &line, const string &file);
 
 int main()
@@ -23,11 +20,6 @@ int main()
         in.getline(buffer, 1024);
         split(buffer, "depth");
     }
-    for(auto it=map.begin();it!=map.end();it++){
-        FILE *f=it->second;
-        fclose(f);
-    }
-    map.clear();
     in.close();
     cout<<"Write depth complete."<<endl;
 
@@ -37,11 +29,6 @@ int main()
         in2.getline(buffer, 1024);
         split(buffer, "entrust");
     }
-    for(auto it=map.begin();it!=map.end();it++){
-        FILE *f=it->second;
-        fclose(f);
-    }
-    map.clear();
     in2.close();
     cout<<"Write entrust complete."<<endl;
 
@@ -51,11 +38,6 @@ int main()
         in3.getline(buffer, 1024);
         split(buffer, "trade");
     }
-    for(auto it=map.begin();it!=map.end();it++){
-        FILE *f=it->second;
-        fclose(f);
-    }
-    map.clear();
     in3.close();
     cout<<"Write trade complete."<<endl;
 
@@ -84,13 +66,9 @@ void split(const string &line, const string &file)
             data_time += line[i];
         }
     }
-    FILE *out = map[ticker];
-    if(out == NULL){
-        char filename[30];
-        sprintf(filename, "data/%s/%s.txt", file.c_str(), ticker.c_str());
-        out = fopen(filename, "w+");
-        map[ticker] = out;
-    }
-    data_time+="\n";
-    fputs(data_time.c_str(), out);
+    char filename[30];
+    sprintf(filename, "data/%s/%s.txt", file.c_str(), ticker.c_str());
+    ofstream out(filename);
+    out<<data_time<<endl;
+    out.close();
 }
