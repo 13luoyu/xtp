@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string.h>
 #include <fstream>
+#include <sys/stat.h>
 using namespace std;
 
 //FeatureDB回调函数
@@ -16,6 +17,11 @@ struct Op_Data{
 
 int main()
 {
+    umask(0);
+    mkdir("time_h5/depth_market", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+    mkdir("time_h5/transaction", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+    mkdir("time_h5/order", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+
     hid_t file;  //HDF5对象
     herr_t status;  //状态
     //打开文件
@@ -26,18 +32,23 @@ int main()
                         FeaturesDB_func, &data);
     //关闭文件
     status = H5Fclose(file);
+    cout<<"Write depth_market complete."<<endl;
 
     file = H5Fopen("order.h5", H5F_ACC_RDWR, H5P_DEFAULT);
+    cout<<"Open order complete"<<endl;
     strcpy(data.filename, "order");    
     status = H5Giterate(file, "FeaturesDB", NULL,
                         FeaturesDB_func, &data);
     status = H5Fclose(file);
+    cout<<"Write order complete."<<endl;
 
     file = H5Fopen("transaction.h5", H5F_ACC_RDWR, H5P_DEFAULT);
+    cout<<"Open transaction complete"<<endl;
     strcpy(data.filename, "transaction");    
     status = H5Giterate(file, "FeaturesDB", NULL,
                         FeaturesDB_func, &data);
     status = H5Fclose(file);
+    cout<<"Write transaction complete."<<endl;
 
     return 0;
 }
