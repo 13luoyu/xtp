@@ -4,8 +4,11 @@
 #include <sys/stat.h>
 using namespace std;
 
-void split(const string &line, const string &file);
+void split_depth(const string &line);
+void split_entrust(const string &line);
+void split_trade(const string &line);
 int buffersize = 102400;
+
 int main()
 {
     umask(0);
@@ -18,7 +21,7 @@ int main()
     in.getline(buffer, buffersize);
     while(!in.eof()){
         in.getline(buffer, buffersize);
-        split(buffer, "depth");
+        split_depth(buffer);
     }
     in.close();
     cout<<"Write depth complete."<<endl;
@@ -27,7 +30,7 @@ int main()
     in2.getline(buffer, buffersize);
     while(!in2.eof()){
         in2.getline(buffer, buffersize);
-        split(buffer, "entrust");
+        split_entrust(buffer);
     }
     in2.close();
     cout<<"Write entrust complete."<<endl;
@@ -36,7 +39,7 @@ int main()
     in3.getline(buffer, buffersize);
     while(!in3.eof()){
         in3.getline(buffer, buffersize);
-        split(buffer, "trade");
+        split_trade(buffer);
     }
     in3.close();
     cout<<"Write trade complete."<<endl;
@@ -44,7 +47,7 @@ int main()
     return 0;
 }
 
-void split(const string &line, const string &file)
+void split_depth(const string &line)
 {
     if(line.size()==0)
         return;
@@ -54,6 +57,8 @@ void split(const string &line, const string &file)
     for(int i=0;i<line.size();i++){
         if(line[i]==','){
             count++;
+            if(count >= 13)
+                break;
             continue;
         }
         if(line[i]==' ')
@@ -67,7 +72,69 @@ void split(const string &line, const string &file)
         }
     }
     char filename[30];
-    sprintf(filename, "data/%s/%s.txt", file.c_str(), ticker.c_str());
+    sprintf(filename, "time_csv/depth/%s.txt", ticker.c_str());
+    ofstream out(filename, ios::app);
+    out<<data_time<<endl;
+    out.close();
+}
+
+void split_entrust(const string &line)
+{
+    if(line.size()==0)
+        return;
+    int count = 0;
+    string ticker;
+    string data_time;
+    for(int i=0;i<line.size();i++){
+        if(line[i]==','){
+            count++;
+            if(count >= 3)
+                break;
+            continue;
+        }
+        if(line[i]==' ')
+            continue;
+
+        if(count == 1){
+            ticker += line[i];
+        }
+        else if(count == 2){
+            data_time += line[i];
+        }
+    }
+    char filename[30];
+    sprintf(filename, "time_csv/entrust/%s.txt", ticker.c_str());
+    ofstream out(filename, ios::app);
+    out<<data_time<<endl;
+    out.close();
+}
+
+void split_trade(const string &line)
+{
+    if(line.size()==0)
+        return;
+    int count = 0;
+    string ticker;
+    string data_time;
+    for(int i=0;i<line.size();i++){
+        if(line[i]==','){
+            count++;
+            if(count >= 3)
+                break;
+            continue;
+        }
+        if(line[i]==' ')
+            continue;
+
+        if(count == 1){
+            ticker += line[i];
+        }
+        else if(count == 2){
+            data_time += line[i];
+        }
+    }
+    char filename[30];
+    sprintf(filename, "time_csv/trade/%s.txt", ticker.c_str());
     ofstream out(filename, ios::app);
     out<<data_time<<endl;
     out.close();
