@@ -5,7 +5,7 @@
 using namespace std;
 
 void split(const string &line, const string &file);
-
+int buffersize = 102400;
 int main()
 {
     umask(0);
@@ -14,28 +14,28 @@ int main()
     mkdir("data/trade", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
     mkdir("data/entrust", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
     ifstream in("depth.csv");
-    char buffer[1024];
-    in.getline(buffer, 1024);
+    char buffer[buffersize];
+    in.getline(buffer, buffersize);
     while(!in.eof()){
-        in.getline(buffer, 1024);
+        in.getline(buffer, buffersize);
         split(buffer, "depth");
     }
     in.close();
     cout<<"Write depth complete."<<endl;
 
     ifstream in2("entrust.csv");
-    in2.getline(buffer, 1024);
+    in2.getline(buffer, buffersize);
     while(!in2.eof()){
-        in2.getline(buffer, 1024);
+        in2.getline(buffer, buffersize);
         split(buffer, "entrust");
     }
     in2.close();
     cout<<"Write entrust complete."<<endl;
 
     ifstream in3("trade.csv");
-    in3.getline(buffer, 1024);
+    in3.getline(buffer, buffersize);
     while(!in3.eof()){
-        in3.getline(buffer, 1024);
+        in3.getline(buffer, buffersize);
         split(buffer, "trade");
     }
     in3.close();
@@ -68,7 +68,7 @@ void split(const string &line, const string &file)
     }
     char filename[30];
     sprintf(filename, "data/%s/%s.txt", file.c_str(), ticker.c_str());
-    ofstream out(filename);
+    ofstream out(filename, ios::app);
     out<<data_time<<endl;
     out.close();
 }
