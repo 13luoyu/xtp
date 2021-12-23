@@ -166,6 +166,8 @@ int main(int argc, char **argv)
 			end_time_min = 30;
 		}
 	}
+	int total_end_min = end_time_hour * 60 + end_time_min;
+	int time_interval = 9 * 60 + 10;//每10分钟打印一次日志
     while(true)
     {
 #ifdef _WIN32
@@ -177,8 +179,17 @@ int main(int argc, char **argv)
 		struct tm *tm;
 		time(&t);
 		tm=localtime(&t);
-		if(tm->tm_hour >= end_time_hour && tm->tm_min >= end_time_min)
+		int total_min = tm->tm_hour * 60 + tm->tm_min;
+		if(total_min >= total_end_min)
 			break;
+		if(total_min >= time_interval){
+			std::ofstream out("log.txt", std::ios::app);
+			out<<tm->tm_hour<<":"<<tm->tm_min<<std::endl;
+			out<<"buffersize1:"<<cnt1<<std::endl;
+			out<<"buffersize2:"<<cnt2<<std::endl;
+			out.close();
+			time_interval += 10;
+		}
     }
 	pQuoteApi->UnSubscribeAllMarketData();
 	pQuoteApi->UnSubscribeAllTickByTick();
@@ -186,8 +197,8 @@ int main(int argc, char **argv)
 	pQuoteApi->Release();
 	
 	std::ofstream out("log.txt", std::ios::app);
-	out<<"buffersize1:"<<cnt1<<std::endl;
-	out<<"buffersize2:"<<cnt2<<std::endl;
+	out<<"end buffersize1:"<<cnt1<<std::endl;
+	out<<"end buffersize2:"<<cnt2<<std::endl;
 	out.close();
 	//写文件
 	std::ofstream o("log.txt", std::ios::app);
