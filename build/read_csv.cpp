@@ -12,10 +12,10 @@ int buffersize = 102400;
 int main()
 {
     umask(0);
-    mkdir("data", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-    mkdir("data/depth", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-    mkdir("data/trade", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-    mkdir("data/entrust", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+    mkdir("time_csv", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+    mkdir("time_csv/depth", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+    mkdir("time_csv/trade", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+    mkdir("time_csv/entrust", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
     ifstream in("depth.csv");
     char buffer[buffersize];
     in.getline(buffer, buffersize);
