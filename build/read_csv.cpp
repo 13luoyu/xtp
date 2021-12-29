@@ -57,17 +57,17 @@ void split_depth(const string &line)
     for(int i=0;i<line.size();i++){
         if(line[i]==','){
             count++;
-            if(count >= 13)
+            if(count >= 14)
                 break;
             continue;
         }
         if(line[i]==' ')
             continue;
 
-        if(count == 1){
+        if(count == 2){
             ticker += line[i];
         }
-        else if(count == 12){
+        else if(count == 13){
             data_time += line[i];
         }
     }
@@ -88,17 +88,17 @@ void split_entrust(const string &line)
     for(int i=0;i<line.size();i++){
         if(line[i]==','){
             count++;
-            if(count >= 3)
+            if(count >= 4)
                 break;
             continue;
         }
         if(line[i]==' ')
             continue;
 
-        if(count == 1){
+        if(count == 2){
             ticker += line[i];
         }
-        else if(count == 2){
+        else if(count == 3){
             data_time += line[i];
         }
     }
@@ -119,17 +119,17 @@ void split_trade(const string &line)
     for(int i=0;i<line.size();i++){
         if(line[i]==','){
             count++;
-            if(count >= 3)
+            if(count >= 4)
                 break;
             continue;
         }
         if(line[i]==' ')
             continue;
 
-        if(count == 1){
+        if(count == 2){
             ticker += line[i];
         }
-        else if(count == 2){
+        else if(count == 3){
             data_time += line[i];
         }
     }

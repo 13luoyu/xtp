@@ -66,31 +66,34 @@ int main(int argc, char **argv)
 	if(is_depth_empty)
 	{
     	std::ofstream os(depth_csv.c_str());
-		os<<"exchange_id, ticker, last_price, pre_close_price, open_price, high_price, low_price, close_price, "<<
-			"upper_limit_price, lower_limit_price, pre_delta, curr_delta, data_time, qty, turnover, avg_price, ";
+		os<<"receive_time,";
+		os<<"exchange_id,ticker,last_price,pre_close_price,open_price,high_price,low_price,close_price,"<<
+			"upper_limit_price,lower_limit_price,pre_delta,curr_delta,data_time,qty,turnover,avg_price,";
 	
 		for(int i=0;i<10;i++)
-			os<<"bid"<<i<<", ";
+			os<<"bid"<<i<<",";
 		for(int i=0;i<10;i++)
-			os<<"ask"<<i<<", ";
+			os<<"ask"<<i<<",";
 		for(int i=0;i<10;i++)
-			os<<"bid_qty"<<i<<", ";
+			os<<"bid_qty"<<i<<",";
 		for(int i=0;i<10;i++)
-			os<<"ask_qty"<<i<<", ";
+			os<<"ask_qty"<<i<<",";
 		
-		os<<"trades_count, ticker_status\n";
+		os<<"trades_count,ticker_status\n";
 		os.close();
 	}
 	if(is_entrust_empty)
 	{
     	std::ofstream os1(entrust_csv.c_str());
-    	os1<<"exchange_id, ticker, data_time, channel_no, seq, price, qty, side, ord_type\n";
+		os1<<"receive_time,";
+    	os1<<"exchange_id,ticker,data_time,channel_no,seq,price,qty,side,ord_type\n";
     	os1.close();
 	}
 	if(is_trade_empty)
 	{
     	std::ofstream os2(trade_csv.c_str());
-    	os2<<"exchange_id, ticker, data_time, channel_no, seq, price, qty, money, bid_no, ask_no, trade_flag\n";
+		os2<<"receive_time,";
+    	os2<<"exchange_id,ticker,data_time,channel_no,seq,price,qty,money,bid_no,ask_no,trade_flag\n";
     	os2.close();
 	}
 	

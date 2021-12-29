@@ -24,6 +24,8 @@ const int buffersize1 = 50000000;
 const long long buffersize2 = 300000000;
 XTPMD ** buffer1 = (XTPMD **)malloc(8 * buffersize1);
 XTPTBT ** buffer2 = (XTPTBT **)malloc(8 * buffersize2);
+long * time_buffer1 = (long *)malloc(sizeof(long) * buffersize1);
+long * time_buffer2 = (long *)malloc(sizeof(long) * buffersize2);
 int cnt1=0, cnt2=0;
 
 void * WriteDepthMarketData()
@@ -31,6 +33,7 @@ void * WriteDepthMarketData()
 	XTPMD **market_data = buffer1;
 	ofstream os(depth_csv, ios::app);
 	for(int c=0;c<cnt1;c++){
+		os<<time_buffer1[c]<<",";
 		os<<market_data[c]->exchange_id<<","<<market_data[c]->ticker<<","<<
 		market_data[c]->last_price<<","<<
 		market_data[c]->pre_close_price<<","<<market_data[c]->open_price<<","<<market_data[c]->high_price<<","<<
@@ -70,6 +73,7 @@ void * WriteTickByTick()
 	for(int c=0;c<cnt2;c++) {
 		if(tbt_data[c]->type==XTP_TBT_ENTRUST)
 		{
+			os<<time_buffer2[c]<<",";
 			os<<tbt_data[c]->exchange_id<<","<<tbt_data[c]->ticker<<","<<
 			tbt_data[c]->data_time<<",";
 			XTPTickByTickEntrust& entrust=tbt_data[c]->entrust;
@@ -79,6 +83,7 @@ void * WriteTickByTick()
 		}
 		else if(tbt_data[c]->type==XTP_TBT_TRADE)
 		{
+			os2<<time_buffer2[c]<<",";
 			os2<<tbt_data[c]->exchange_id<<","<<tbt_data[c]->ticker<<","
 			<<tbt_data[c]->data_time<<",";
 			XTPTickByTickTrade &trade=tbt_data[c]->trade;
@@ -170,7 +175,8 @@ void MyQuoteSpi::OnDepthMarketData(XTPMD * market_data, int64_t bid1_qty[], int3
 	tmp*=100;	tmp+=tm->tm_min;
 	tmp*=100;	tmp+=tm->tm_sec;
 	tmp*=1000;	tmp+=tv.tv_usec/1000;
-	market_data->data_time=tmp;
+	time_buffer1[cnt1] = tmp;
+
 	void *data=malloc(sizeof(XTPMD));
 	memcpy(data, market_data, sizeof(XTPMD));
 	if(cnt1==buffersize1){
@@ -229,7 +235,7 @@ void MyQuoteSpi::OnTickByTick(XTPTBT *tbt_data)
 	tmp*=100;	tmp+=tm->tm_min;
 	tmp*=100;	tmp+=tm->tm_sec;
 	tmp*=1000;	tmp+=tv.tv_usec/1000;
-	tbt_data->data_time=tmp;
+	time_buffer2[cnt2] = tmp;
 
 	void *data=malloc(sizeof(XTPTBT));
 	memcpy(data, tbt_data, sizeof(XTPTBT));
